@@ -1,10 +1,10 @@
-# Saves names and numbers to a CSV file using a DictWriter
-
+# Imports
 import csv
+from basic_functions import get_valid_input
 
 # Get name and number
-name = input("Name: ")
-number = input("Number: ")
+name = get_valid_input(str,"Name: ")
+number = get_valid_input(str,"Number: ")
 
 # Open CSV file
 with open("DATA/phonebook.csv", "a") as file:
