@@ -60,7 +60,7 @@ class Library():
 
     # Method to add a book
     def add_book(self, title, author, read = False):
-        self.books.append({"title": title, "author": author, "read": read})
+        self.books.append({"title": title.strip().capitalize(), "author": author.strip().capitalize(), "read": read})
         # Write the updated books list to the file
         self.write_to_csv()
         print(f"\n\tBook '{title}' added.")
