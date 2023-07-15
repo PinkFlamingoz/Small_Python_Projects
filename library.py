@@ -46,7 +46,6 @@ class Library():
             print(f"\nOS error: {e}")
 
 
-
     # Method to write books to a CSV file
     def write_to_csv(self):
         try:
@@ -145,7 +144,6 @@ class Library():
 
         print("\nAll books have been deleted from the library.")
     
-
 
 # Main
 def main():
