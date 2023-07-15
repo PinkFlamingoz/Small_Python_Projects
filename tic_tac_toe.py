@@ -76,8 +76,7 @@ def is_winner(board, mark):
         (1, 5, 9),
         (3, 5, 7),
     ]
-    return any(
-        board[a] == board[b] == board[c] == mark for a, b, c in winning_combinations)
+    return any(board[a] == board[b] == board[c] == mark for a, b, c in winning_combinations)
 
 
 # Function to check if the game board is full
