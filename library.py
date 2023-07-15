@@ -115,7 +115,8 @@ class Library():
 
     # Method to display all authors
     def display_all_authors(self):
-        return [book["author"] for book in self.books]
+        return list(set(book["author"] for book in self.books))
+
 
 
     # Method to display all read books
