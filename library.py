@@ -49,7 +49,7 @@ class Library():
     # Method to write books to a CSV file
     def write_to_csv(self):
         try:
-            with open(self.filename, "w", newline="") as file:
+            with open(self.filename, "w", newline = "") as file:
                 writer = csv.DictWriter(file, fieldnames=["title", "author", "read"])
                 writer.writeheader()
                 writer.writerows(self.books)
