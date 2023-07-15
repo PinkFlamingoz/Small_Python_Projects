@@ -1,7 +1,7 @@
+# Imports
 import re
 import sys
 import time
-
 from dictionary import check, load, size
 
 # Maximum length for a word
