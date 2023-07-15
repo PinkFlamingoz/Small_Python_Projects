@@ -68,10 +68,16 @@ class Library():
 
     # Method to delete a book
     def delete_book(self, title):
-        self.books = [book for book in self.books if book["title"].lower() != title.lower()]
-        # Write the updated books list to the file
-        self.write_to_csv()
-        print(f"\n\tBook '{title}' deleted.")
+        # Check if a book with the title exists in the library
+        if any(book["title"].lower() == title.lower() for book in self.books):
+            # If the book exists, delete it
+            self.books = [book for book in self.books if book["title"].lower() != title.lower()]
+            # Write the updated books list to the file
+            self.write_to_csv()
+            print(f"\n\tBook '{title}' deleted.")
+        else:
+            # If the book does not exist, print a message
+            print(f"\n\tNo book with the title '{title}' found in the library.")
 
 
     # Method to search for a book
