@@ -70,7 +70,8 @@ def main():
     
     # Print student info
     student.print_student()
-
+ 
+ 
 # Start
 if __name__ == "__main__":    
     main()
