@@ -60,7 +60,7 @@ class Library():
 
     # Method to add a book
     def add_book(self, title, author, read = False):
-        self.books.append({"title": title.strip().capitalize(), "author": author.strip().capitalize(), "read": read})
+        self.books.append({"title": title.strip().title(), "author": author.strip().title(), "read": read})
         # Write the updated books list to the file
         self.write_to_csv()
         print(f"\n\tBook '{title}' added.")
@@ -116,7 +116,6 @@ class Library():
     # Method to display all authors
     def display_all_authors(self):
         return list(set(book["author"] for book in self.books))
-
 
 
     # Method to display all read books
@@ -202,6 +201,8 @@ def main():
             os.system("cls" if os.name == "nt" else "clear")
         elif case == 0:
             break
+        else:
+          print("\n\tInvalid choice.")
         input("\n\t\tPress Enter to continue...")
 
 
