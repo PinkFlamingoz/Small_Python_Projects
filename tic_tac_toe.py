@@ -2,6 +2,7 @@
 import random
 from basic_functions import get_valid_input
 
+
 # Start and control the game
 def main():
     board = [" "] * 10 #---------------------------------------------- Initialize the game board

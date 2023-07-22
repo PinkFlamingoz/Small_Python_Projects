@@ -1,6 +1,7 @@
 # Import
 from basic_functions import get_valid_input
 
+
 # Classes
 class Student():
     
@@ -54,6 +55,7 @@ class Student():
         grade = get_valid_input(int, "Enter student grade: ")
         
         return Student(name, id, grade)
+        
         
 # Main        
 def main():

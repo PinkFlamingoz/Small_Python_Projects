@@ -21,6 +21,7 @@ def paycheck(words):
     # or "$100" if the greeting is not in the dictionary
     return greeting_to_pay.get(first_word, "$100")
 
+
 # Main
 def main():
     text = input("Greeting: ")

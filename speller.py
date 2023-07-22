@@ -4,6 +4,7 @@ import sys
 import time
 from dictionary import check, load, size
 
+
 # Maximum length for a word
 # (e.g., pneumonoultramicroscopicsilicovolcanoconiosis)
 LENGTH = 45
