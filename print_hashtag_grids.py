@@ -18,7 +18,7 @@ def print_horizontal(n):
 # Print vertical 
 def print_vertical(n):
     print("Vertical print :")
-    for _ in range(n):
+    for i in range(n):
         print("#")
 
 
