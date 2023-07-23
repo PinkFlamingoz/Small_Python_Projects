@@ -5,9 +5,9 @@ from basic_functions import get_valid_input
 # Get the number of dollars the customer is owe
 def get_dollars():
     while True:
-            n = get_valid_input(float, "Change owed: ")
-            if n >= 0:
-                return n
+        n = get_valid_input(float, "Change owed: ")
+        if n >= 0:
+            return n
 
 
 # Calculate the number of quarters to give the customer

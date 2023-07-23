@@ -5,9 +5,9 @@ from basic_functions import get_valid_input
 # Get credit card number from user
 def get_credit_input():
     while True:
-            card = get_valid_input(int ,"Enter credit card number: ")
-            if card > 0:
-                return card
+        card = get_valid_input(int ,"Enter credit card number: ")
+        if card > 0:
+            return card
 
 
 # Get first two digits of credit card number
