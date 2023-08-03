@@ -29,6 +29,30 @@ def create_tables(c):
         print(f"An error occurred: {e}")
 
 
+# Load data from csv
+def load_from_csv(c):
+    house_dict = {}
+
+    with open('students.csv', 'r') as f:
+        reader = csv.DictReader(f)
+
+        for row in reader:
+            student_id = int(row['id'])
+            student_name = row['student_name']
+            house_name = row['house']
+            head_name = row['head']
+
+            if house_name not in house_dict:
+                c.execute("INSERT INTO houses (house_name, head_name) VALUES (?, ?)", (house_name, head_name))
+                house_id = c.lastrowid
+                house_dict[house_name] = house_id
+            else:
+                house_id = house_dict[house_name]
+
+            c.execute("INSERT INTO students (id, student_name) VALUES (?, ?)", (student_id, student_name))
+            c.execute("INSERT INTO assignments (id, student_id, house_id) VALUES (?, ?, ?)", (student_id, student_id, house_id))
+
+
 # Print menu
 def print_menu():
     options = [
@@ -51,7 +75,7 @@ def print_menu():
 # Add house to database
 def add_house(c, house_name, head_name):
     try:
-        c.execute("INSERT INTO houses (house_name, head_name) VALUES (?, ?)", (house_name, head_name))
+        c.execute("INSERT INTO houses (house_name, head_name) VALUES (?, ?)", (house_name.title(), head_name.title()))
         print(f"House {house_name} has been successfully added.")
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
@@ -60,13 +84,13 @@ def add_house(c, house_name, head_name):
 # Add student to database
 def add_student(c, student_name, house_name):
     try:
-        c.execute("SELECT id FROM houses WHERE house_name=?", (house_name,))
+        c.execute("SELECT id FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         if result is None:
             print("House not found. Please add the house first.")
         else:
             house_id = result[0]
-            c.execute("INSERT INTO students (student_name) VALUES (?)", (student_name,))
+            c.execute("INSERT INTO students (student_name) VALUES (?)", (student_name.title(),))
             student_id = c.lastrowid 
             c.execute("INSERT INTO assignments (student_id, house_id) VALUES (?, ?)", (student_id, house_id))
             print(f"Student {student_name} has been successfully added.")
@@ -77,13 +101,13 @@ def add_student(c, student_name, house_name):
 # Delete house from database
 def delete_house(c, house_name):
     try:
-        c.execute("SELECT id FROM houses WHERE house_name=?", (house_name,))
+        c.execute("SELECT id FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         if result is None:
             print("House not found.")
         else:
-            c.execute("DELETE FROM assignments WHERE house_id=(SELECT id FROM houses WHERE house_name=?)", (house_name,))
-            c.execute("DELETE FROM houses WHERE house_name=?", (house_name,))
+            c.execute("DELETE FROM assignments WHERE house_id=(SELECT id FROM houses WHERE LOWER(house_name) LIKE ?)", (f"{house_name.lower()}%",))
+            c.execute("DELETE FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
             print(f"House {house_name} has been successfully deleted.")
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
@@ -92,13 +116,13 @@ def delete_house(c, house_name):
 # Delete student from database
 def delete_student(c, student_name):
     try:
-        c.execute("SELECT id FROM students WHERE student_name=?", (student_name,))
+        c.execute("SELECT id FROM students WHERE LOWER(student_name) LIKE ?", (f"{student_name.lower()}%",))
         result = c.fetchone()
         if result is None:
             print("Student not found.")
         else:
-            c.execute("DELETE FROM assignments WHERE student_id=(SELECT id FROM students WHERE student_name=?)", (student_name,))
-            c.execute("DELETE FROM students WHERE student_name=?", (student_name,))
+            c.execute("DELETE FROM assignments WHERE student_id=(SELECT id FROM students WHERE LOWER(student_name) LIKE ?)", (f"{student_name.lower()}%",))
+            c.execute("DELETE FROM students WHERE LOWER(student_name) LIKE ?", (f"{student_name.lower()}%",))
             print(f"Student {student_name} has been successfully deleted.")
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
@@ -107,13 +131,13 @@ def delete_student(c, student_name):
 # Display head of house from database
 def display_house_head(c, house_name):
     try:
-        c.execute("SELECT * FROM houses WHERE house_name=?", (house_name,))
+        c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         if result is None:
             print(f"The house '{house_name}' does not exist.")
             return
 
-        c.execute("SELECT head_name FROM houses WHERE house_name=?", (house_name,))
+        c.execute("SELECT head_name FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         print(f"Head: {result[0]}")
     except sqlite3.Error as e:
@@ -123,7 +147,7 @@ def display_house_head(c, house_name):
 # Display students in house from database 
 def display_students_in_house(c, house_name):
     try:
-        c.execute("SELECT * FROM houses WHERE house_name=?", (house_name,))
+        c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         if result is None:
             print(f"The house '{house_name}' does not exist.")
@@ -134,8 +158,8 @@ def display_students_in_house(c, house_name):
         FROM students
         JOIN assignments ON students.id = assignments.student_id
         JOIN houses ON houses.id = assignments.house_id
-        WHERE houses.house_name=?
-        """, (house_name,))
+        WHERE LOWER(houses.house_name) LIKE ?
+        """, (f"{house_name.lower()}%",))
         result = c.fetchall()
         if not result:
             print(f"No students are assigned to house '{house_name}'.")
@@ -165,7 +189,9 @@ def display_all_houses(c):
 # Display all students from database
 def display_all_students(c):
     try:
-        c.execute("SELECT students.id, students.student_name, houses.house_name FROM students JOIN assignments ON students.id = assignments.student_id JOIN houses ON houses.id = assignments.house_id")
+        c.execute("""SELECT students.id, students.student_name, houses.house_name FROM students 
+                  JOIN assignments ON students.id = assignments.student_id 
+                  JOIN houses ON houses.id = assignments.house_id""")
         result = c.fetchall()
         print(f"{'ID':<5} {'Student':<33} {'House':<20}")
         print("-"*50)
@@ -178,10 +204,13 @@ def display_all_students(c):
 # Main
 def main():
     try:
+        db_exists = os.path.isfile('DATA/student_data.db')
         conn = sqlite3.connect('DATA/student_data.db')
         c = conn.cursor()
 
-        create_tables(c)
+        if not db_exists:
+            create_tables(c)
+            load_from_csv(c)
 
         while True:
             print_menu()
