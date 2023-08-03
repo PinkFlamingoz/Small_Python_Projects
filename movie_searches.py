@@ -10,10 +10,9 @@ def create_tables(c):
     try:
         c.execute('''
             CREATE TABLE IF NOT EXISTS movies (
-                id INTEGER,
+                id INTEGE RPRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 year NUMERIC,
-                PRIMARY KEY(id))
         ''')
         c.execute('''
             CREATE TABLE IF NOT EXISTS stars (
@@ -38,10 +37,9 @@ def create_tables(c):
         ''')
         c.execute('''
             CREATE TABLE IF NOT EXISTS people (
-                id INTEGER,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 birth NUMERIC,
-                PRIMARY KEY(id))
         ''')
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")

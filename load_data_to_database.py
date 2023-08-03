@@ -64,6 +64,10 @@ def print_menu():
         "Display All Houses",
         "Display All Students",
         "Display Students in House",
+        "Update Student Name",
+        "Update House Name",
+        "Update House Head",
+        "Update Student Assignments",
         "Clear Screen",
     ]
 
@@ -201,6 +205,77 @@ def display_all_students(c):
         print(f"An error occurred: {e}")
 
 
+# Update student name
+def update_student_name(c, old_name, new_name):
+    try:
+        c.execute("SELECT * FROM students WHERE LOWER(student_name) LIKE ?", (f"{old_name.lower()}%",))
+        result = c.fetchall()
+        if not result:
+            print(f"No student found with name '{old_name}'.")
+            return
+        
+            c.execute("UPDATE students SET student_name = ? WHERE LOWER(student_name) LIKE ?", (new_name.title(), f"{old_name.lower()}%",))
+            print(f"Student name '{old_name}' has been successfully updated to '{new_name}'.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+
+
+# Update house name
+def update_house_name(c, old_name, new_name):
+    try:    
+        c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{old_name.lower()}%",))
+        result = c.fetchall()
+        if not result:
+            print(f"No house found with name '{old_name}'.")
+            return
+
+            c.execute("UPDATE houses SET house_name = ? WHERE LOWER(house_name) LIKE ?", (new_name.title(), f"{old_name.lower()}%",))
+            print(f"House name '{old_name}' has been successfully updated to '{new_name}'.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+
+
+# Update house head
+def update_house_head(c, house_name, new_head):
+    try:
+        c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
+        result = c.fetchall()
+        if not result:
+            print(f"No house found with name '{house_name}'.")
+            return
+
+            c.execute("UPDATE houses SET head_name = ? WHERE LOWER(house_name) LIKE ?", (new_head.title(), f"{house_name.lower()}%",))
+            print(f"Head of the house '{house_name}' has been successfully updated to '{new_head}'.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+
+
+# Update student assignments
+def update_student_assignment(c, student_name, new_house_name):
+    try:
+        c.execute("SELECT * FROM students WHERE LOWER(student_name) LIKE ?", (f"{student_name.lower()}%",))
+        student_data = c.fetchall()
+        if not student_data:
+            print(f"No student found with name '{student_name}'.")
+            return
+
+        c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{new_house_name.lower()}%",))
+        house_data = c.fetchall()
+        if not house_data:
+            print(f"No house found with name '{new_house_name}'.")
+            return
+
+            # Fetch student_id
+            student_id = student_data[0][0]
+            # Fetch new_house_id
+            new_house_id = house_data[0][0]
+            # Update assignments table
+            c.execute("UPDATE assignments SET house_id = ? WHERE student_id = ?", (new_house_id, student_id))
+            print(f"Assignment of student '{student_name}' has been successfully updated to house '{new_house_name}'.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+
+
 # Main
 def main():
     try:
@@ -240,6 +315,22 @@ def main():
                 house_name = get_valid_input(str,"\n\tEnter house name: ")
                 display_students_in_house(c, house_name)
             elif case == "9":
+                old_name = get_valid_input(str, "Enter old student name: ")
+                new_name = get_valid_input(str, "Enter new student name: ")
+                update_student_name(c, old_name, new_name)
+            elif case == "10":
+                old_name = get_valid_input(str, "Enter old house name: ")
+                new_name = get_valid_input(str, "Enter new house name: ")
+                update_house_name(c, old_name, new_name)
+            elif case == "11":
+                house_name = get_valid_input(str, "Enter house name: ")
+                new_head = get_valid_input(str, "Enter new head name: ")
+                update_house_head(c, house_name, new_head)
+            elif case == "12":
+                student_name = get_valid_input(str, "Enter student name: ")
+                new_house_name = get_valid_input(str, "Enter new house name: ")
+                update_student_assignment(c, student_name, new_house_name)
+            elif case == "13":
                 os.system("cls" if os.name == "nt" else "clear")
             elif case == "0":
                 break
