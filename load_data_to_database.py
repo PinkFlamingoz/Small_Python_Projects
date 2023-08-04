@@ -1,6 +1,7 @@
 # Import
 import sqlite3
 import os
+import csv
 from basic_functions import get_valid_input
 
 
@@ -30,27 +31,30 @@ def create_tables(c):
 
 
 # Load data from csv
-def load_from_csv(c):
+def load_from_csv(c, csv_file):
     house_dict = {}
 
-    with open('students.csv', 'r') as f:
-        reader = csv.DictReader(f)
+    try:
+        with open(csv_file, 'r') as f:
+            reader = csv.DictReader(f)
 
-        for row in reader:
-            student_id = int(row['id'])
-            student_name = row['student_name']
-            house_name = row['house']
-            head_name = row['head']
+            for row in reader:
+                student_id = int(row['id'])
+                student_name = row['student_name']
+                house_name = row['house']
+                head_name = row['head']
 
-            if house_name not in house_dict:
-                c.execute("INSERT INTO houses (house_name, head_name) VALUES (?, ?)", (house_name, head_name))
-                house_id = c.lastrowid
-                house_dict[house_name] = house_id
-            else:
-                house_id = house_dict[house_name]
+                if house_name not in house_dict:
+                    c.execute("INSERT INTO houses (house_name, head_name) VALUES (?, ?)", (house_name, head_name))
+                    house_id = c.lastrowid
+                    house_dict[house_name] = house_id
+                else:
+                    house_id = house_dict[house_name]
 
-            c.execute("INSERT INTO students (id, student_name) VALUES (?, ?)", (student_id, student_name))
-            c.execute("INSERT INTO assignments (id, student_id, house_id) VALUES (?, ?, ?)", (student_id, student_id, house_id))
+                c.execute("INSERT INTO students (id, student_name) VALUES (?, ?)", (student_id, student_name))
+                c.execute("INSERT INTO assignments (student_id, house_id) VALUES (?, ?)", (student_id, house_id))
+    except FileNotFoundError:
+        print(f"File {csv_file} was not found.")
 
 
 # Print menu
@@ -86,6 +90,28 @@ def add_house(c, house_name, head_name):
 
 
 # Add student to database
+# fetchone(): This method retrieves the next row of a query result set and returns a single sequence, or None if no more rows are available.
+# fetchall(): This method fetches all (remaining) rows of a query result, returning them as a list of tuples. An empty list is returned if no more rows are available.
+# fetchmany(size): This method fetches the next set of rows of a query result, returning a list. 
+# An empty list is returned when no more rows are available. The number of rows to fetch per call is specified by the size parameter. 
+# If it is not given, the cursor's array size determines the number of rows to be fetched.
+# 
+# c.execute("SELECT * FROM houses WHERE house_name = ?", ('Slytherin',))
+# result = c.fetchone()
+# result is a tuple that might look like this: (1, 'Slytherin', 'Snape')
+# You can access the elements of this tuple using indexing:
+# id = result[0]  # 1
+# house_name = result[1]  # 'Slytherin'
+# head_name = result[2]  # 'Snape'
+#
+# c.execute("SELECT * FROM houses")
+# results = c.fetchall()
+# results might look like this: [(1, 'Slytherin', 'Snape'), (2, 'Gryffindor', 'McGonagall'), ...]
+# You can access the elements of each tuple using indexing:
+# first_row = results[0]  # (1, 'Slytherin', 'Snape')
+# first_row_id = first_row[0]  # 1
+# first_row_house_name = first_row[1]  # 'Slytherin'
+# first_row_head_name = first_row[2]  # 'Snape'
 def add_student(c, student_name, house_name):
     try:
         c.execute("SELECT id FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
@@ -135,6 +161,7 @@ def delete_student(c, student_name):
 # Display head of house from database
 def display_house_head(c, house_name):
     try:
+        # Check if house exists
         c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         if result is None:
@@ -144,6 +171,7 @@ def display_house_head(c, house_name):
         c.execute("SELECT head_name FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         print(f"Head: {result[0]}")
+   
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
@@ -151,6 +179,7 @@ def display_house_head(c, house_name):
 # Display students in house from database 
 def display_students_in_house(c, house_name):
     try:
+        # Check if house exists
         c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchone()
         if result is None:
@@ -173,6 +202,7 @@ def display_students_in_house(c, house_name):
         print("-"*30)
         for row in result:
             print(f"{row[0]:<5} {row[1]:<20}")
+   
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
@@ -186,6 +216,7 @@ def display_all_houses(c):
         print("-"*40)
         for row in result:
             print(f"{row[1]:<20} {row[2]:<20}")
+    
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
@@ -201,6 +232,7 @@ def display_all_students(c):
         print("-"*50)
         for row in result:
             print(f"{row[0]:<5} {row[1]:<33} {row[2]:<20}")
+    
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
@@ -208,29 +240,37 @@ def display_all_students(c):
 # Update student name
 def update_student_name(c, old_name, new_name):
     try:
+        # Check if old_name exists in database
         c.execute("SELECT * FROM students WHERE LOWER(student_name) LIKE ?", (f"{old_name.lower()}%",))
         result = c.fetchall()
         if not result:
             print(f"No student found with name '{old_name}'.")
             return
         
-            c.execute("UPDATE students SET student_name = ? WHERE LOWER(student_name) LIKE ?", (new_name.title(), f"{old_name.lower()}%",))
-            print(f"Student name '{old_name}' has been successfully updated to '{new_name}'.")
+        # Update student_name in students table
+        c.execute("UPDATE students SET student_name = ? WHERE LOWER(student_name) LIKE ?", (new_name.title(), f"{old_name.lower()}%",))
+       
+        print(f"Student name '{old_name}' has been successfully updated to '{new_name}'.")
+    
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
 
 # Update house name
 def update_house_name(c, old_name, new_name):
-    try:    
+    try:
+        # Check if old_name exists in database    
         c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{old_name.lower()}%",))
         result = c.fetchall()
         if not result:
             print(f"No house found with name '{old_name}'.")
             return
 
-            c.execute("UPDATE houses SET house_name = ? WHERE LOWER(house_name) LIKE ?", (new_name.title(), f"{old_name.lower()}%",))
-            print(f"House name '{old_name}' has been successfully updated to '{new_name}'.")
+        # Update house_name in houses table
+        c.execute("UPDATE houses SET house_name = ? WHERE LOWER(house_name) LIKE ?", (new_name.title(), f"{old_name.lower()}%",))
+        
+        print(f"House name '{old_name}' has been successfully updated to '{new_name}'.")
+    
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
@@ -238,14 +278,18 @@ def update_house_name(c, old_name, new_name):
 # Update house head
 def update_house_head(c, house_name, new_head):
     try:
+        # Check if house_name exists in database
         c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{house_name.lower()}%",))
         result = c.fetchall()
         if not result:
             print(f"No house found with name '{house_name}'.")
             return
 
-            c.execute("UPDATE houses SET head_name = ? WHERE LOWER(house_name) LIKE ?", (new_head.title(), f"{house_name.lower()}%",))
-            print(f"Head of the house '{house_name}' has been successfully updated to '{new_head}'.")
+        # Update head_name in houses table
+        c.execute("UPDATE houses SET head_name = ? WHERE LOWER(house_name) LIKE ?", (new_head.title(), f"{house_name.lower()}%",))
+        
+        print(f"Head of the house '{house_name}' has been successfully updated to '{new_head}'.")
+    
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
@@ -253,25 +297,30 @@ def update_house_head(c, house_name, new_head):
 # Update student assignments
 def update_student_assignment(c, student_name, new_house_name):
     try:
+        # Check if student_name and new_house_name exist in database
         c.execute("SELECT * FROM students WHERE LOWER(student_name) LIKE ?", (f"{student_name.lower()}%",))
         student_data = c.fetchall()
         if not student_data:
             print(f"No student found with name '{student_name}'.")
             return
 
+        # Check if new_house_name exists in database
         c.execute("SELECT * FROM houses WHERE LOWER(house_name) LIKE ?", (f"{new_house_name.lower()}%",))
         house_data = c.fetchall()
         if not house_data:
             print(f"No house found with name '{new_house_name}'.")
             return
 
-            # Fetch student_id
-            student_id = student_data[0][0]
-            # Fetch new_house_id
-            new_house_id = house_data[0][0]
-            # Update assignments table
-            c.execute("UPDATE assignments SET house_id = ? WHERE student_id = ?", (new_house_id, student_id))
-            print(f"Assignment of student '{student_name}' has been successfully updated to house '{new_house_name}'.")
+        # Fetch student_id
+        student_id = student_data[0][0]
+        # Fetch new_house_id
+        new_house_id = house_data[0][0]
+        
+        # Update assignments table
+        c.execute("UPDATE assignments SET house_id = ? WHERE student_id = ?", (new_house_id, student_id))
+        
+        print(f"Assignment of student '{student_name}' has been successfully updated to house '{new_house_name}'.")
+        
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
@@ -279,13 +328,24 @@ def update_student_assignment(c, student_name, new_house_name):
 # Main
 def main():
     try:
-        db_exists = os.path.isfile('DATA/student_data.db')
-        conn = sqlite3.connect('DATA/student_data.db')
-        c = conn.cursor()
+        database = "DATA/student_data.db"
+        db_exists = os.path.isfile(database)
+        csv_file = 'DATA/students.csv'
+        conn = None
 
-        if not db_exists:
+        # Create tables if database does not exist and csv file exists
+        if not db_exists and os.path.exists(csv_file):
+            conn = sqlite3.connect(database)
+            c = conn.cursor()
             create_tables(c)
-            load_from_csv(c)
+            load_from_csv(c, csv_file)
+        # Connect to database if it exists
+        elif db_exists:
+            conn = sqlite3.connect(database)
+            c = conn.cursor()
+        else:
+            print(f"File {csv_file} does not exist. Database won't be created and data won't be loaded.")
+            return
 
         while True:
             print_menu()
