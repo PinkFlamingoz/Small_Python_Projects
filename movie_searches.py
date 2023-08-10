@@ -298,7 +298,7 @@ def main():
         db_exists = os.path.isfile(database)
         conn = None
 
-        # Create tables if database does not exist and csv file exists
+        # Create tables if database does not exist
         if not db_exists:
              print(f"File {db_exists} does not exist.")
              return
